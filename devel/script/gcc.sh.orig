@@ -1,0 +1,150 @@
+#!/bin/bash
+#set -x # devel
+
+PROGRAMNAME="gcc-5.1.0"
+ARCHIVENAME="gcc-5.1.0.tar.bz2"
+MIRRORURL="https://ftp.gnu.org/gnu/gcc/gcc-5.1.0/$ARCHIVENAME"
+
+TMPDIR=$1         # e.g. /tmp/GnuCommandLineTools
+INSTALLPREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
+MODE=$3           # 0:install 1:uninstall
+SRCDIR=$TMPDIR/src
+WORKBENCHDIR=$TMPDIR/workbench
+PATCHDIR=$TMPDIR/patches
+TOOLCHAINDIR=$TMPDIR/toolchain
+
+trap_err()
+{
+  uninstall
+  exit 1
+}
+trap "trap_err" SIGHUP SIGINT SIGTERM ERR
+
+build()
+{
+  pushd $WORKBENCHDIR/$PROGRAMNAME 1>/dev/null
+  echo "Patching $PROGRAMNAME"
+  patch -p1 < $PATCHDIR/Make-lang.in.patch 1>/dev/null
+  if [ ! $? -eq 0 ]; then
+    echo "Failed to patch files"
+    return 1
+  fi
+
+  echo "Configuring $PROGRAMNAME"
+  ./configure \
+    --prefix=$INSTALLPREFIX/usr \
+    --with-gmp=$TOOLCHAINDIR \
+    --with-mpfr=$TOOLCHAINDIR \
+    --with-mpc=$TOOLCHAINDIR \
+    --with-isl=$TOOLCHAINDIR \
+    --disable-isl-version-check \
+    --with-system-zlib \
+    --enable-version-specific-runtime-libs \
+    --enable-libstdcxx-time=yes \
+    --enable-stage1-checking \
+    --enable-checking=release \
+    --enable-lto \
+    --disable-werror \
+    --enable-plugin \
+    --disable-multilib \
+    --with-ecj-jar=$PREFIX/share/java/ecj.jar \
+    --enable-languages=c,c++,fortran,java,objc,obj-c++ \
+    --with-as=$TOOLCHAIN/usr/bin/as \
+    --with-ld=$(which ld) \
+    --with-ar=$TOOLCHAIN/usr/bin/ar \
+    AR_FOR_TARGET=$TOOLCHAIN/usr/bin/ar \
+    AS_FOR_TARGET=$TOOLCHAIN/usr/bin/as \
+    LD_FOR_TARGET=$(which ld) \
+    NM_FOR_TARGET=$TOOLCHAIN/usr/bin/nm \
+    OBJDUMP_FOR_TARGET=$(which objdump) \
+    RANLIB_FOR_TARGET=$TOOLCHAIN/usr/bin/ranlib \
+    STRIP_FOR_TARGET=$TOOLCHAIN/usr/bin/strip \
+    OTOOL=$TOOLCHAIN/usr/bin/tool \
+    OTOOL64=$TOOLCHAIN/usr/bin/tool \
+    CC=$(which clang) \
+    CXX=$(which clang++) \
+    1>/dev/null
+  if [ ! $? -eq 0  ]; then
+    echo "Failed to configure"
+    return 2
+  fi
+
+  echo "Building $PROGRAMNAME"
+  make bootstrap 1>/dev/null
+  if [ ! $? -eq 0 ]; then
+    echo "Failed to build sources"
+    return 3
+  fi
+
+  echo "Installing $PROGRAMNAME"
+  make install 1>/dev/null
+  if [ ! $? -eq 0 ]; then
+    echo "Failed to install"
+    return 4
+  fi
+
+  make clean 1>/dev/null
+  popd 1>/dev/null
+
+  return 0
+}
+
+uninstall()
+{
+  if [ ! -d $WORKBENCHDIR/$PROGRAMNAME ]; then
+    echo "$PROGRAMNAME is already uninstalled"
+    return 0
+  fi
+
+  pushd $WORKBENCHDIR/$PROGRAMNAME 1>/dev/null
+  if [ -r Makefile ]; then
+    echo "Uninstalling $PROGRAMNAME"
+    make uninstall 1>/dev/null
+    if [ ! $? -eq 0 ]; then
+      echo "Failed to uninstall"
+      return 1
+    fi
+  fi
+  popd 1>/dev/null
+
+  pushd $WORKBENCHDIR 1>/dev/null
+  if [ -d $PROGRAMNAME ]; then
+    echo "Removing $PROGRAMNAME workbench directory"
+    rm -rf $PROGRAMNAME
+  fi
+  popd 1>/dev/null
+
+  return 0
+}
+
+preparation()
+{
+  if [ ! -r $SRCDIR/$ARCHIVENAME ]; then
+    pushd $SRCDIR 1>/dev/null
+    echo "Downloading $ARCHIVENAME"
+    curl -fSsLO $MIRRORURL
+    if  [ ! $? -eq 0 ]; then
+      echo "Failed to download archives"
+      return 1
+    fi
+    popd 1>/dev/null
+  fi
+  echo "Prepare to build $PROGRAMNAME"
+  pushd $WORKBENCHDIR 1>/dev/null
+  tar xf $SRCDIR/$ARCHIVENAME
+  if [ ! $? -eq 0 ]; then
+    echo "Failed to extract archives"
+    return 2
+  fi
+  popd 1>/dev/null
+  return 0
+}
+
+# main
+if [ $MODE -eq 1 ]; then
+  uninstall
+  exit 0
+fi
+
+preparation
+build

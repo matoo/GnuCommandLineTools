@@ -1,0 +1,121 @@
+#!/bin/bash
+#set -x # devel
+
+VERSION="1.1"
+BASEDIR=$(dirname $0)
+if [ $(echo $BASEDIR | cut -c 1) == '.' ];then
+  BASEDIR=$PWD/$(dirname $0)
+fi
+PREFIX="/Users/devel/Prefix"
+TMPDIR=/tmp/gnucommandlinetools
+COMMANDLINETOOLSPATH=/Library/Developer/CommandLineTools
+
+OLDPATH=$PATH
+OLDCFLAGS=$CFLAGS
+OLDCXXFLAGS=$CXXFLAGS
+OLDCPPFLAGS=$CPPFLAGS
+OLDLDFLAGS=$LDFLAGS
+PATH="$TMPDIR/toolchain/usr/bin:/bin:/sbin:/usr/bin:/usr/sbin"
+CFLAGS="-I$TMPDIR/toolchain/include"
+CXXFLAGS="-I$TMPDIR/toolchain/include"
+CPPFLAGS=""
+LDFLAGS="-L$TMPDIR/toolchain/lib"
+
+usage()
+{
+  echo "Usage:"
+  echo "Install:   # sh INSTALLER.sh"
+  echo "Uninstall: # sh INSTALLER.sh uninstall"
+  echo "You must execute as root user"
+  exit 0
+}
+
+version()
+{
+  echo "Version: $VERSION"
+  exit 0
+}
+
+trap_err()
+{
+  uninstall
+  exit 1
+}
+trap 'trap_err' SIGHUP SIGINT SIGTERM ERR
+
+uninstall()
+{
+  pushd $BASEDIR/script 1>/dev/null
+  #sh pkgconfig.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
+  #sh cctools.sh $TMPDIR $TMPDIR/toolchain 1 1>/dev/null
+  #sh libtool.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
+  #sh autoconf.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
+  #sh automake.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
+  #sh gmp.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
+  #sh mpfr.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
+  #sh mpc.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
+  #sh isl.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
+  #sh cloog.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
+  #sh gcc.sh $BASEDIR $TOOLCHAIN $WORKBENCH $PREFIX uninstall 1>/dev/null
+  #test -L /usr/local/bin/gcc-ar && rm -v /usr/local/bin/gcc-ar
+  #test -L /usr/local/bin/gcc-nm && rm -v /usr/local/bin/gcc-nm
+  #test -L /usr/local/bin/gcc-ranlib && rm -v /usr/local/bin/gcc-ranlib
+  #test -L /usr/local/bin/gcj && rm -v /usr/local/bin/gcj
+  #test -L /usr/local/bin/gfortran && rm -v /usr/local/bin/gfortran
+  test -d $TMPDIR && rm -rf $TMPDIR
+  test -d $PREFIX && rm -rf $PREFIX
+  popd 1>/dev/null
+}
+
+preparation ()
+{
+  mkdir -p $TMPDIR/{patches,src,workbench,toolchain}
+  cp -r $BASEDIR/patches/* $TMPDIR/patches
+  export PATH=$PATH
+  export CFLAGS=$CFLAGS
+  export CXXFLAGS=$CXXFLAGS
+  export CPPFLAGS=$CPPFLAGS
+  export LDFLAGS=$LDFLAGS
+  echo "Setup $PREFIX Environmnet"
+  test -d $PREFIX && rm -rf $PREFIX
+  mkdir $PREFIX
+  if [ ! -d $COMMANDLINETOOLSPATH ]; then
+    echo 'Installing CommandLineTools'
+    xcode-select install
+  fi
+  cp -r $COMMANDLINETOOLSPATH/* $PREFIX
+  pushd $PREFIX/usr/bin 1>/dev/null
+  mv gcc gcc_llvm
+  mv cpp cpp_llvm
+  rm -f cc c++ g++ gcov # these are symbolic links
+  popd 1>/dev/null
+}
+
+# main
+while getopts "hv" OPT; do
+  case $OPT in
+    h) usage ;;
+    v) version;;
+  esac
+done
+
+if [ "$1" = "uninstall" ]; then
+  export PATH=$OLDPATH
+  uninstall
+  exit 0
+fi
+
+preparation
+pushd $BASEDIR/script 1>/dev/null
+sh pkgconfig.sh $TMPDIR $TMPDIR/toolchain/usr 0
+sh cctools.sh $TMPDIR $TMPDIR/toolchain 0
+sh libtool.sh $TMPDIR $TMPDIR/toolchain/usr 0
+sh autoconf.sh $TMPDIR $TMPDIR/toolchain/usr 0
+sh autoconf.sh $TMPDIR $TMPDIR/toolchain/usr 0
+sh gmp.sh $TMPDIR $TMPDIR/toolchain 0
+sh mpfr.sh $TMPDIR $TMPDIR/toolchain 0
+sh mpc.sh $TMPDIR $TMPDIR/toolchain 0
+sh isl.sh $TMPDIR $TMPDIR/toolchain 0
+sh ecj.sh $TMPDIR $PREFIX 0
+sh gcc.sh $TMPDIR $PREFIX 0
+popd 1>/dev/null
