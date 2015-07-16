@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="ecj-4.9"
+ARCHIVENAME="$PROGRAMNAME.jar"
+MIRRORURL="https://mirrors.kernel.org/sources.redhat.com/java/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -13,11 +13,6 @@ PATCHDIR=$TMPDIR/patch/$PROGRAMNAME
 TESTDIR=$TMPDIR/test/$PROGRAMNAME
 WORKBENCH=$TMPDIR/workbench
 TOOLCHAIN=$TMPDIR/toolchain
-
-declare -a CONFIGURE_ARGS=(
-  --prefix=$PREFIX
-)
-MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
 trap_signal()
 {
@@ -43,17 +38,12 @@ uninstall()
     return 0
   fi
 
-  pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
-  if [ -r Makefile ]; then
-    echo "Uninstalling $PROGRAMNAME"
-    make uninstall \
-    1>/dev/null 2>/dev/null
-    if [ ! $? -eq 0 ]; then
-      echo "Failed to uninstall"
-      return 1
-    fi
+  echo "Uninstalling $PROGRAMNAME"
+  rm -f $PREFIX/share/java/$ARCHIVENAME
+  if [ $? -ne 0 ]; then
+    echo "Failed to uninstall"
+    return 1
   fi
-  popd 1>/dev/null
 
   pushd $WORKBENCH 1>/dev/null
   if [ -d $PROGRAMNAME ]; then
@@ -77,13 +67,10 @@ preparation()
     fi
     popd 1>/dev/null
   fi
-  echo "Prepare to build $PROGRAMNAME"
-  pushd $WORKBENCH 1>/dev/null
-  tar xf $SRCDIR/$ARCHIVENAME
-  if [ ! $? -eq 0 ]; then
-    echo "Failed to extract $ARCHIVENAME"
-    return 2
-  fi
+
+  mkdir $WORKBENCH/$PROGRAMNAME
+  pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
+  cp $SRCDIR/$ARCHIVENAME ecj.jar
   popd 1>/dev/null
   return 0
 }
@@ -91,12 +78,7 @@ preparation()
 post_install()
 {
   pushd $TESTDIR 1>/dev/null
-  echo "Testing $PROGRAMNAME"
-  test_hoge
-  if [ $? -ne 0 ]; then
-    echo "Failed to test $PROGRAMNAME"
-    return 1
-  fi
+  #echo "Testing $PROGRAMNAME"
   popd 1>/dev/null
 }
 
@@ -116,14 +98,8 @@ pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
 for p in $(ls $PATCHDIR); do
   patch -p0 < $PATCHDIR/$p 1>/dev/null
 done
-echo "Configuring $PROGRAMNAME"
-./configure ${CONFIGURE_ARGS[@]} \
-1>/dev/null 2>/dev/null
-echo "Building $PROGRAMNAME"
-make $MAKE_ARGS \
-1>/dev/null 2>/dev/null
 echo "Installing $PROGRAMNAME"
-make install \
-1>/dev/null 2>/dev/null
+install -d $PREFIX/share/java 1>/dev/null
+install ecj.jar $PREFIX/share/java 1>/dev/null
 post_install
 popd 1>/dev/null

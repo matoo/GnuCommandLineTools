@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
+PROGRAMNAME="cctools-855"
 ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+MIRRORURL="https://opensource.apple.com/tarballs/cctools/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -14,10 +14,17 @@ TESTDIR=$TMPDIR/test/$PROGRAMNAME
 WORKBENCH=$TMPDIR/workbench
 TOOLCHAIN=$TMPDIR/toolchain
 
-declare -a CONFIGURE_ARGS=(
-  --prefix=$PREFIX
+declare -a MAKE_ARGS=(
+  DSTROOT=$PREFIX
+  RC_ProjectSourceVersion=855
+  RC_OS="macos"
+  RC_ARCHS=x86_64
+  USE_DEPENDENCY_FILE=NO
+  BUILD_DYLIBS=NO
+  SDK=-std=gnu99
+  CC=clang CXX=clang++
+  LTO= RC_CFLAGS= TRIE= 
 )
-MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
 trap_signal()
 {
@@ -42,18 +49,6 @@ uninstall()
     echo "$PROGRAMNAME is already uninstalled"
     return 0
   fi
-
-  pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
-  if [ -r Makefile ]; then
-    echo "Uninstalling $PROGRAMNAME"
-    make uninstall \
-    1>/dev/null 2>/dev/null
-    if [ ! $? -eq 0 ]; then
-      echo "Failed to uninstall"
-      return 1
-    fi
-  fi
-  popd 1>/dev/null
 
   pushd $WORKBENCH 1>/dev/null
   if [ -d $PROGRAMNAME ]; then
@@ -92,7 +87,8 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  $PREFIX/usr/bin/otool -L $PREFIX/usr/bin/install_name_tool | grep /usr/lib/libSystem.B.dylib \
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1
@@ -116,14 +112,8 @@ pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
 for p in $(ls $PATCHDIR); do
   patch -p0 < $PATCHDIR/$p 1>/dev/null
 done
-echo "Configuring $PROGRAMNAME"
-./configure ${CONFIGURE_ARGS[@]} \
-1>/dev/null 2>/dev/null
-echo "Building $PROGRAMNAME"
-make $MAKE_ARGS \
-1>/dev/null 2>/dev/null
 echo "Installing $PROGRAMNAME"
-make install \
+make install_tools ${MAKE_ARGS[@]} \
 1>/dev/null 2>/dev/null
 post_install
 popd 1>/dev/null

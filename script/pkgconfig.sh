@@ -52,7 +52,8 @@ uninstall()
   pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
   if [ -r Makefile ]; then
     echo "Uninstalling $PROGRAMNAME"
-    make uninstall 1>/dev/null
+    make uninstall \
+    1>/dev/null 2>/dev/null
     if [ ! $? -eq 0 ]; then
       echo "Failed to uninstall"
       return 1
@@ -98,7 +99,7 @@ post_install()
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
   $PREFIX/bin/pkg-config --libs /usr/lib/pkgconfig/openssl.pc \
-  1>/dev/null
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1
@@ -120,14 +121,17 @@ fi
 preparation
 pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
 for p in $(ls $PATCHDIR); do
-  patch -p0 < $PATCHDIR/$p
+  patch -p0 < $PATCHDIR/$p 1>/dev/null
 done
 echo $PWD
 echo "Configuring $PROGRAMNAME"
-./configure ${CONFIGURE_ARGS[@]} 1>/dev/null 2>/dev/null
+./configure ${CONFIGURE_ARGS[@]} \
+1>/dev/null 2>/dev/null
 echo "Building $PROGRAMNAME"
-make $MAKE_ARGS 1>/dev/null 2>/dev/null
+make $MAKE_ARGS \
+1>/dev/null 2>/dev/null
 echo "Installing $PROGRAMNAME"
-make install 1>/dev/null 2>/dev/null
+make install \
+1>/dev/null 2>/dev/null
 post_install
 popd 1>/dev/null

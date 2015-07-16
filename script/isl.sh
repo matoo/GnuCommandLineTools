@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="isl-0.14.1"
+ARCHIVENAME="$PROGRAMNAME.tar.xz"
+MIRRORURL="http://isl.gforge.inria.fr/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,6 +16,14 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --disable-dependency-tracking
+  --disable-silent-rules
+  --with-gmp=system
+  --with-gmp-prefix=$TOOLCHAINDIR
+  --enable-shared=no
+  --enable-static=yes
+  CC=$(which clang)
+  CXX=$(which clang++)
 )
 MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
@@ -92,7 +100,9 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  cc test.c -I$PREFIX/include -L$PREFIX/lib -lgmp -lisl -o test &&
+  ./test \
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1

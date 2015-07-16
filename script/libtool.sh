@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="libtool-2.4.6"
+ARCHIVENAME="$PROGRAMNAME.tar.xz"
+MIRRORURL="https://ftp.gnu.org/gnu/libtool/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,6 +16,9 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --disable-dependency-tracking
+  --program-prefix=g
+  --enable-ltdl-install
 )
 MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
@@ -46,8 +49,7 @@ uninstall()
   pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
   if [ -r Makefile ]; then
     echo "Uninstalling $PROGRAMNAME"
-    make uninstall \
-    1>/dev/null 2>/dev/null
+    make uninstall 1>/dev/null
     if [ ! $? -eq 0 ]; then
       echo "Failed to uninstall"
       return 1
@@ -61,6 +63,9 @@ uninstall()
     rm -rf $PROGRAMNAME
   fi
   popd 1>/dev/null
+  rm -rf $PREFIX/share/libtool
+  rm -rf $PREFIX/include/libltdl
+  rm -rf $PREFIX/share/libtool
 
   return 0
 }
@@ -92,7 +97,8 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  $PREFIX/bin/glibtool execute /usr/bin/true \
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1
@@ -114,7 +120,7 @@ fi
 preparation
 pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
 for p in $(ls $PATCHDIR); do
-  patch -p0 < $PATCHDIR/$p 1>/dev/null
+  patch -p0 < $PATCHDIR/$p
 done
 echo "Configuring $PROGRAMNAME"
 ./configure ${CONFIGURE_ARGS[@]} \

@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="gcc-5.1.0"
+ARCHIVENAME="$PROGRAMNAME.tar.bz2"
+MIRRORURL="https://ftp.gnu.org/gnu/gcc/gcc-5.1.0/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,6 +16,36 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --with-gmp=$TOOLCHAINDIR
+  --with-mpfr=$TOOLCHAINDIR
+  --with-mpc=$TOOLCHAINDIR
+  --with-isl=$TOOLCHAINDIR
+  --disable-isl-version-check
+  --with-system-zlib
+  --enable-version-specific-runtime-libs
+  --enable-libstdcxx-time=yes
+  --enable-stage1-checking
+  --enable-checking=release
+  --enable-lto
+  --disable-werror
+  --enable-plugin
+  --disable-multilib
+  --with-ecj-jar=$PREFIX/share/java/ecj.jar
+  --enable-languages=c,c++,fortran,java,objc,obj-c++
+  --with-as=$TOOLCHAIN/usr/bin/as 
+  --with-ld=$(which ld)
+  --with-ar=$TOOLCHAIN/usr/bin/ar
+  AR_FOR_TARGET=$TOOLCHAIN/usr/bin/ar
+  AS_FOR_TARGET=$TOOLCHAIN/usr/bin/as
+  LD_FOR_TARGET=$(which ld)
+  NM_FOR_TARGET=$TOOLCHAIN/usr/bin/nm
+  OBJDUMP_FOR_TARGET=$(which objdump)
+  RANLIB_FOR_TARGET=$TOOLCHAIN/usr/bin/ranlib
+  STRIP_FOR_TARGET=$TOOLCHAIN/usr/bin/strip
+  OTOOL=$TOOLCHAIN/usr/bin/tool
+  OTOOL64=$TOOLCHAIN/usr/bin/tool
+  CC=$(which clang)
+  CXX=$(which clang++)
 )
 MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
@@ -92,7 +122,13 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  $PREFIX/bin/gcc test-c.c -o test-c 1>/dev/null 2>/dev/null &&
+  $PREFIX/bin/g++ test-cxx.cxx -o test-cxx1>/dev/null 2>/dev/null test-cxx &&
+  $PREFIX/bin/gfortran test-f90.f90 -c &&
+  $PREFIX/bin/gfortran test-f90.o -o test-f90 &&
+  ./test-c 1>/dev/null &&
+  ./test-cxx 1>/dev/null &&
+  ./test-f90 1>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1

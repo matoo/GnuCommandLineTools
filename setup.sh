@@ -12,7 +12,7 @@ TMPDIR=/tmp/GnuCommandLineTools
 SRCDIR=$TMPDIR/src
 PATCHDIR=$TMPDIR/patch
 TESTDIR=$TMPDIR/test
-TOOLCHAIN=$TMPDIR/toochain
+TOOLCHAIN=$TMPDIR/toolchain
 WORKBENCH=$TMPDIR/workbench
 
 OLDPATH=$PATH
@@ -111,14 +111,26 @@ fi
 preparation
 pushd $BASEDIR/script 1>/dev/null
 sh pkgconfig.sh $TMPDIR $TOOLCHAIN/usr 0
-#sh cctools.sh $TMPDIR $TOOLCHAIN/USR 0
-#sh libtool.sh $TMPDIR $TOOLCHAIN/usr 0
-#sh autoconf.sh $TMPDIR $TOOLCHAIN/usr 0
-#sh autoconf.sh $TMPDIR $TOOLCHAIN/usr 0
-#sh gmp.sh $TMPDIR $TOOLCHAIN 0
-#sh mpfr.sh $TMPDIR $TOOLCHAIN 0
-#sh mpc.sh $TMPDIR $TOOLCHAIN 0
-#sh isl.sh $TMPDIR $TOOLCHAIN 0
-#sh ecj.sh $TMPDIR $PREFIX 0
+sh cctools.sh $TMPDIR $TOOLCHAIN 0
+sh libtool.sh $TMPDIR $TOOLCHAIN/usr 0
+sh autoconf.sh $TMPDIR $TOOLCHAIN/usr 0
+sh automake.sh $TMPDIR $TOOLCHAIN/usr 0
+sh gmp.sh $TMPDIR $TOOLCHAIN 0
+sh mpfr.sh $TMPDIR $TOOLCHAIN 0
+sh mpc.sh $TMPDIR $TOOLCHAIN 0
+sh isl.sh $TMPDIR $TOOLCHAIN 0
+sh ecj.sh $TMPDIR $PREFIX/usr 0
+sh gcc.sh $TMPDIR $PREFIX/usr 0
+
+#sh pkgconfig.sh $TMPDIR $TOOLCHAIN/usr 1
+#sh cctools.sh $TMPDIR $TOOLCHAIN 1
+#sh libtool.sh $TMPDIR $TOOLCHAIN/usr 1
+#sh autoconf.sh $TMPDIR $TOOLCHAIN/usr 1
+#sh automake.sh $TMPDIR $TOOLCHAIN/usr 1
+#sh gmp.sh $TMPDIR $TOOLCHAIN 1
+#sh mpfr.sh $TMPDIR $TOOLCHAIN 1
+#sh mpc.sh $TMPDIR $TOOLCHAIN 1
+#sh isl.sh $TMPDIR $TOOLCHAIN 1
+#sh ecj.sh $TMPDIR $PREFIX 1
 #sh gcc.sh $TMPDIR $PREFIX 0
 popd 1>/dev/null

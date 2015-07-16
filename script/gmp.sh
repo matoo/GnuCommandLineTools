@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="gmp-6.0.0"
+ARCHIVENAME="gmp-6.0.0a.tar.bz2"
+MIRRORURL="https://ftp.gnu.org/gnu/gmp/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,6 +16,13 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --enable-cxx
+  --enable-shared=no
+  --enable-static=yes
+  CC=$(which clang)
+  CXX=$(which clang++)
+  ABI=64
+
 )
 MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
@@ -30,7 +37,7 @@ trap_error()
 {
   local LINENO=$1
   echo "$0: Error at $LINENO"
-  uninstall
+  #uninstall
   exit 2
 }
 trap 'trap_signal' SIGHUP SIGINT SIGTERM
@@ -92,7 +99,9 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  cc test.c -I$PREFIX/include -L$PREFIX/lib -lgmp -o test &&
+  ./test \
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1

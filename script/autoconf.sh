@@ -1,9 +1,9 @@
 #!/bin/bash
 #set -x # devel
 
-PROGRAMNAME="hoge-0.1"
+PROGRAMNAME="autoconf-2.69"
 ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+MIRRORURL="https://ftp.gnu.org/gnu/autoconf/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,6 +16,7 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --infodir=$PREFIX/share/info
 )
 MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
@@ -60,6 +61,7 @@ uninstall()
     echo "Removing $PROGRAMNAME from workbench directory"
     rm -rf $PROGRAMNAME
   fi
+  rm -rf $PREFIX/share/autoconf
   popd 1>/dev/null
 
   return 0
@@ -92,7 +94,9 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  cp $PREFIX/share/autoconf/autotest/autotest.m4 . &&
+  $PREFIX/bin/autoconf autotest.m4 \
+  1>/dev/null 2>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1

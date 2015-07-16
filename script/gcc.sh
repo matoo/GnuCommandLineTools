@@ -1,9 +1,9 @@
 #!/bin/bash
-#set -x # devel
+set -x # devel
 
-PROGRAMNAME="hoge-0.1"
-ARCHIVENAME="$PROGRAMNAME.tar.gz"
-MIRRORURL="https://hoge.org/$ARCHIVENAME"
+PROGRAMNAME="gcc-5.1.0"
+ARCHIVENAME="$PROGRAMNAME.tar.bz2"
+MIRRORURL="https://ftp.gnu.org/gnu/gcc/gcc-5.1.0/$ARCHIVENAME"
 
 TMPDIR=$1  # e.g. /tmp/GnuCommandLineTools
 PREFIX=$2  # e.g. /Library/Developer/GnuCommandLineTools/
@@ -16,8 +16,35 @@ TOOLCHAIN=$TMPDIR/toolchain
 
 declare -a CONFIGURE_ARGS=(
   --prefix=$PREFIX
+  --enable-languages=c,c++,fortran,java,objc,obj-c++
+  --with-gmp=$TOOLCHAIN
+  --with-mpfr=$TOOLCHAIN
+  --with-mpc=$TOOLCHAIN
+  --with-isl=$TOOLCHAIN
+  --with-ecj-jar=$PREFIX/share/java/ecj.jar
+  --with-system-zlib
+  --enable-stage1-checking
+  --enable-checking=release
+  --enable-lto
+  --disable-werror
+  --enable-plugin
+  --disable-multilib
+  --with-as=$TOOLCHAIN/usr/bin/as
+  --with-ld=$PREFIX/usr/bin/ld
+  --with-ar=$TOOLCHAIN/usr/bin/ar
+  CC=$(which clang)
+  CXX=$(which clang++)
+  AR_FOR_TARGET=$TOOLCHAIN/bin/ar 
+  AS_FOR_TARGET=$TOOLCHAIN/bin/as
+  LD_FOR_TARGET=$(which ld)
+  NM_FOR_TARGET=$TOOLCHAIN/bin/nm
+  OBJDUMP_FOR_TARGET=$(which objdump)
+  RANLIB_FOR_TARGET=$TOOLCHAIN/usr/bin/ranlib
+  STRIP_FOR_TARGET=$TOOLCHAIN/usr/bin/strip
+  OTOOL=$TOOLCHAIN/usr/bin/otool
+  OTOOL64=$TOOLCHAIN/usr/bin/otool
 )
-MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
+#MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
 trap_signal()
 {
@@ -30,7 +57,7 @@ trap_error()
 {
   local LINENO=$1
   echo "$0: Error at $LINENO"
-  uninstall
+  #uninstall
   exit 2
 }
 trap 'trap_signal' SIGHUP SIGINT SIGTERM
@@ -92,7 +119,13 @@ post_install()
 {
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
-  test_hoge
+  $PREFIX/bin/gcc test-c.c -o test-c 1>/dev/null 2>/dev/null &&
+  $PREFIX/bin/g++ test-cxx.cxx -o test-cxx1>/dev/null 2>/dev/null test-cxx &&
+  $PREFIX/bin/gfortran test-f90.f90 -c &&
+  $PREFIX/bin/gfortran test-f90.o -o test-f90 &&
+  ./test-c 1>/dev/null &&
+  ./test-cxx 1>/dev/null &&
+  ./test-f90 1>/dev/null
   if [ $? -ne 0 ]; then
     echo "Failed to test $PROGRAMNAME"
     return 1
@@ -113,15 +146,14 @@ fi
 
 preparation
 pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
-for p in $(ls $PATCHDIR); do
-  patch -p0 < $PATCHDIR/$p 1>/dev/null
-done
+#for p in $(ls $PATCHDIR); do
+#  patch -p0 < $PATCHDIR/$p 1>/dev/null
+#done
 echo "Configuring $PROGRAMNAME"
 ./configure ${CONFIGURE_ARGS[@]} \
 1>/dev/null 2>/dev/null
 echo "Building $PROGRAMNAME"
-make $MAKE_ARGS \
-1>/dev/null 2>/dev/null
+make bootstrap
 echo "Installing $PROGRAMNAME"
 make install \
 1>/dev/null 2>/dev/null
