@@ -38,6 +38,7 @@ usage()
 trap_err()
 {
   #uninstall
+  #post_install
   exit 1
 }
 trap 'trap_err' SIGHUP SIGINT SIGTERM ERR
@@ -94,17 +95,28 @@ preparation ()
   popd 1>/dev/null
 }
 
+post_install()
+{
+  export PATH=$OLDPATH
+  export CFLAGS=OLDCFLAGS
+  export CXXFLAGS=$CXXFLAGS
+  export CPPFLAGS=$CPPFLAGS
+  export LDFLAGS=$LDFLAGS
+  test -d $TMPDIR && rm -rf $TMPDIR
+}
+
 # main
 while getopts "hu" OPT; do
   case $OPT in
     h) usage ;;
-    u) uninstall; exit 1;;
+    u) uninstall; exit 0;;
   esac
 done
 
 if [ "$1" = "uninstall" ]; then
   export PATH=$OLDPATH
   uninstall
+  post_install
   exit 0
 fi
 
@@ -122,15 +134,6 @@ sh isl.sh $TMPDIR $TOOLCHAIN 0
 sh ecj.sh $TMPDIR $PREFIX/usr 0
 sh gcc.sh $TMPDIR $PREFIX/usr 0
 
-#sh pkgconfig.sh $TMPDIR $TOOLCHAIN/usr 1
-#sh cctools.sh $TMPDIR $TOOLCHAIN 1
-#sh libtool.sh $TMPDIR $TOOLCHAIN/usr 1
-#sh autoconf.sh $TMPDIR $TOOLCHAIN/usr 1
-#sh automake.sh $TMPDIR $TOOLCHAIN/usr 1
-#sh gmp.sh $TMPDIR $TOOLCHAIN 1
-#sh mpfr.sh $TMPDIR $TOOLCHAIN 1
-#sh mpc.sh $TMPDIR $TOOLCHAIN 1
-#sh isl.sh $TMPDIR $TOOLCHAIN 1
-#sh ecj.sh $TMPDIR $PREFIX 1
-#sh gcc.sh $TMPDIR $PREFIX 0
+#sh gcc.sh $TMPDIR $PREFIX 1
 popd 1>/dev/null
+#post_install

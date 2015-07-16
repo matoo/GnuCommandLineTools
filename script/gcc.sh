@@ -24,27 +24,28 @@ declare -a CONFIGURE_ARGS=(
   --with-ecj-jar=$PREFIX/share/java/ecj.jar
   --with-system-zlib
   --enable-stage1-checking
+  --enable-libstdcxx-time=yes
   --enable-checking=release
   --enable-lto
   --disable-werror
   --enable-plugin
   --disable-multilib
   --with-as=$TOOLCHAIN/usr/bin/as
-  --with-ld=$PREFIX/usr/bin/ld
+  --with-ld=$(which ld)
   --with-ar=$TOOLCHAIN/usr/bin/ar
   CC=$(which clang)
   CXX=$(which clang++)
-  AR_FOR_TARGET=$TOOLCHAIN/bin/ar 
-  AS_FOR_TARGET=$TOOLCHAIN/bin/as
+  AR_FOR_TARGET=$TOOLCHAIN/usr/bin/ar 
+  AS_FOR_TARGET=$TOOLCHAIN/usr/bin/as
   LD_FOR_TARGET=$(which ld)
-  NM_FOR_TARGET=$TOOLCHAIN/bin/nm
+  NM_FOR_TARGET=$TOOLCHAIN/usr/bin/nm
   OBJDUMP_FOR_TARGET=$(which objdump)
   RANLIB_FOR_TARGET=$TOOLCHAIN/usr/bin/ranlib
   STRIP_FOR_TARGET=$TOOLCHAIN/usr/bin/strip
   OTOOL=$TOOLCHAIN/usr/bin/otool
   OTOOL64=$TOOLCHAIN/usr/bin/otool
 )
-#MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
+MAKE_ARGS="-j $(sysctl -n machdep.cpu.core_count)"
 
 trap_signal()
 {
@@ -57,7 +58,7 @@ trap_error()
 {
   local LINENO=$1
   echo "$0: Error at $LINENO"
-  #uninstall
+  uninstall
   exit 2
 }
 trap 'trap_signal' SIGHUP SIGINT SIGTERM
@@ -146,16 +147,20 @@ fi
 
 preparation
 pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
-#for p in $(ls $PATCHDIR); do
-#  patch -p0 < $PATCHDIR/$p 1>/dev/null
-#done
+for p in $(ls $PATCHDIR); do
+  patch -p0 < $PATCHDIR/$p 1>/dev/null
+done
+
 echo "Configuring $PROGRAMNAME"
 ./configure ${CONFIGURE_ARGS[@]} \
 1>/dev/null 2>/dev/null
+
 echo "Building $PROGRAMNAME"
-make bootstrap
+make bootstrap $MAKE_ARGS
+
 echo "Installing $PROGRAMNAME"
 make install \
 1>/dev/null 2>/dev/null
+
 post_install
 popd 1>/dev/null
