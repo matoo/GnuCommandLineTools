@@ -49,7 +49,7 @@ trap 'trap_err' SIGHUP SIGINT SIGTERM ERR
 
 uninstall()
 {
-  pushd $BASEDIR/script 1>/dev/null
+  #pushd $BASEDIR/script 1>/dev/null
   #sh pkgconfig.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
   #sh cctools.sh $TMPDIR $TMPDIR/toolchain 1 1>/dev/null
   #sh libtool.sh $TMPDIR $TMPDIR/toolchain/usr 1 1>/dev/null
@@ -61,14 +61,15 @@ uninstall()
   #sh isl.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
   #sh cloog.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
   #sh gcc.sh $BASEDIR $TOOLCHAIN $WORKBENCH $PREFIX uninstall 1>/dev/null
-  test -L /usr/local/bin/gcc-ar && rm /usr/local/bin/gcc-ar
-  test -L /usr/local/bin/gcc-nm && rm /usr/local/bin/gcc-nm
-  test -L /usr/local/bin/gcc-ranlib && rm /usr/local/bin/gcc-ranlib
-  test -L /usr/local/bin/gcj && rm /usr/local/bin/gcj
-  test -L /usr/local/bin/gfortran && rm /usr/local/bin/gfortran
+  #popd 1>/dev/null
+  local program
+  declare -a program=(gcc-ar gcc-nm gcc-ranlib gcj gfortran)
+  for p in ${program[@]}; do
+    test -L /usr/local/bin/$p && rm -f /usr/local/bin/$p
+  done
   test -d $PREFIX && rm -rf $PREFIX
   test -d $TMPDIR && rm -rf $TMPDIR
-  popd 1>/dev/null
+
 }
 
 preparation ()
@@ -116,10 +117,10 @@ post_install()
 }
 
 # main
-#if [ $UID -ne 0 ]; then
-#  echo "You must execute $0 as root priviliges"
-#  exit 0
-#fi
+if [ $UID -ne 0 ]; then
+  echo "You must execute $0 as root priviliges"
+  exit 0
+fi
 
 while getopts "hu" OPT; do
   case $OPT in
