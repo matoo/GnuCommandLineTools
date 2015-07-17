@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x # devel
+#set -x # devel
 
 PROGRAMNAME="gcc-5.1.0"
 ARCHIVENAME="$PROGRAMNAME.tar.bz2"
