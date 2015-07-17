@@ -6,7 +6,7 @@ BASEDIR=$(dirname $0)
 if [ $(echo $BASEDIR | cut -c 1) == '.' ];then
   BASEDIR=$PWD/$(dirname $0)
 fi
-PREFIX=/Library/Developer/GnuCommandLineTools
+PREFIX=/Users/devel/Prefix #/Library/Developer/GnuCommandLineTools
 COMMANDLINETOOLS=/Library/Developer/CommandLineTools
 TMPDIR=/tmp/GnuCommandLineTools
 SRCDIR=$TMPDIR/src
@@ -115,10 +115,10 @@ post_install()
 }
 
 # main
-if [ $UID -ne 0 ]; then
-  echo "You must execute $0 as root priviliges"
-  exit 0
-fi
+#if [ $UID -ne 0 ]; then
+#  echo "You must execute $0 as root priviliges"
+#  exit 0
+#fi
 
 while getopts "hu" OPT; do
   case $OPT in

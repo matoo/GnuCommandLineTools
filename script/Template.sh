@@ -67,6 +67,8 @@ uninstall()
 
 preparation()
 {
+  test ! -d $PATCHDIR && mkdir $PATCHDIR
+  test ! -d $TESTDIR && mkdir $TESTDIR
   if [ ! -r $SRCDIR/$ARCHIVENAME ]; then
     pushd $SRCDIR 1>/dev/null
     echo "Downloading $ARCHIVENAME"
@@ -113,7 +115,7 @@ fi
 
 preparation
 pushd $WORKBENCH/$PROGRAMNAME 1>/dev/null
-for p in $(ls $PATCHDIR); do
+test -d $PATCHDIR && for p in $(ls $PATCHDIR); do
   patch -p0 < $PATCHDIR/$p 1>/dev/null
 done
 echo "Configuring $PROGRAMNAME"

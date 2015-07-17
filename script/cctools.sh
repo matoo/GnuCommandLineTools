@@ -62,6 +62,8 @@ uninstall()
 
 preparation()
 {
+  test ! -d $PATCHDIR && mkdir $PATCHDIR
+  test ! -d $TESTDIR && mkdir $TESTDIR
   if [ ! -r $SRCDIR/$ARCHIVENAME ]; then
     pushd $SRCDIR 1>/dev/null
     echo "Downloading $ARCHIVENAME"
