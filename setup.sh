@@ -37,8 +37,8 @@ usage()
 
 trap_err()
 {
-  #uninstall
-  #post_install
+  uninstall
+  post_install
   exit 1
 }
 trap 'trap_err' SIGHUP SIGINT SIGTERM ERR
@@ -62,7 +62,6 @@ uninstall()
   #test -L /usr/local/bin/gcc-ranlib && rm -v /usr/local/bin/gcc-ranlib
   #test -L /usr/local/bin/gcj && rm -v /usr/local/bin/gcj
   #test -L /usr/local/bin/gfortran && rm -v /usr/local/bin/gfortran
-  test -d $TMPDIR && rm -rf $TMPDIR
   test -d $PREFIX && rm -rf $PREFIX
   popd 1>/dev/null
 }
@@ -133,7 +132,6 @@ sh mpc.sh $TMPDIR $TOOLCHAIN 0
 sh isl.sh $TMPDIR $TOOLCHAIN 0
 sh ecj.sh $TMPDIR $PREFIX/usr 0
 sh gcc.sh $TMPDIR $PREFIX/usr 0
-
-#sh gcc.sh $TMPDIR $PREFIX 1
+sh gcc.sh $TMPDIR $PREFIX/usr 1
 popd 1>/dev/null
-#post_install
+post_install

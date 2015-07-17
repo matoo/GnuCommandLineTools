@@ -121,7 +121,7 @@ post_install()
   pushd $TESTDIR 1>/dev/null
   echo "Testing $PROGRAMNAME"
   $PREFIX/bin/gcc test-c.c -o test-c 1>/dev/null 2>/dev/null &&
-  $PREFIX/bin/g++ test-cxx.cxx -o test-cxx1>/dev/null 2>/dev/null test-cxx &&
+  $PREFIX/bin/g++ test-cxx.cxx -o test-cxx 1>/dev/null 2>/dev/null &&
   $PREFIX/bin/gfortran test-f90.f90 -c &&
   $PREFIX/bin/gfortran test-f90.o -o test-f90 &&
   ./test-c 1>/dev/null &&
@@ -156,7 +156,8 @@ echo "Configuring $PROGRAMNAME"
 1>/dev/null 2>/dev/null
 
 echo "Building $PROGRAMNAME"
-make bootstrap $MAKE_ARGS
+make bootstrap $MAKE_ARGS \
+1>/dev/null 2>/dev/null
 
 echo "Installing $PROGRAMNAME"
 make install \
