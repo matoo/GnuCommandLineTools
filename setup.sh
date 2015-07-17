@@ -147,6 +147,5 @@ sh mpc.sh $TMPDIR $TOOLCHAIN 0
 sh isl.sh $TMPDIR $TOOLCHAIN 0
 sh ecj.sh $TMPDIR $PREFIX/usr 0
 sh gcc.sh $TMPDIR $PREFIX/usr 0
-sh gcc.sh $TMPDIR $PREFIX/usr 1
 popd 1>/dev/null
 post_install
