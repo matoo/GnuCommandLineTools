@@ -6,7 +6,7 @@ BASEDIR=$(dirname $0)
 if [ $(echo $BASEDIR | cut -c 1) == '.' ];then
   BASEDIR=$PWD/$(dirname $0)
 fi
-PREFIX=/Users/devel/Prefix #/Library/Developer/GnuCommandLineTools
+PREFIX=/Library/Developer/GnuCommandLineTools
 COMMANDLINETOOLS=/Library/Developer/CommandLineTools
 TMPDIR=/tmp/GnuCommandLineTools
 SRCDIR=$TMPDIR/src
