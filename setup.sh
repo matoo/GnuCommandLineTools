@@ -6,7 +6,7 @@ BASEDIR=$(dirname $0)
 if [ $(echo $BASEDIR | cut -c 1) == '.' ];then
   BASEDIR=$PWD/$(dirname $0)
 fi
-PREFIX="/Users/devel/Prefix" #/Library/Developer/GnuCommandLineTools
+PREFIX=/Library/Developer/GnuCommandLineTools
 COMMANDLINETOOLS=/Library/Developer/CommandLineTools
 TMPDIR=/tmp/GnuCommandLineTools
 SRCDIR=$TMPDIR/src
@@ -38,7 +38,11 @@ usage()
 trap_err()
 {
   uninstall
-  post_install
+  export PATH=$OLDPATH
+  export CFLAGS=$OLDCFLAGS
+  export CXXFLAGS=$CXXFLAGS
+  export CPPFLAGS=$CPPFLAGS
+  export LDFLAGS=$LDFLAGS
   exit 1
 }
 trap 'trap_err' SIGHUP SIGINT SIGTERM ERR
@@ -57,12 +61,13 @@ uninstall()
   #sh isl.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
   #sh cloog.sh $BASEDIR $WORKBENCH $TOOLCHAIN uninstall 1>/dev/null
   #sh gcc.sh $BASEDIR $TOOLCHAIN $WORKBENCH $PREFIX uninstall 1>/dev/null
-  #test -L /usr/local/bin/gcc-ar && rm -v /usr/local/bin/gcc-ar
-  #test -L /usr/local/bin/gcc-nm && rm -v /usr/local/bin/gcc-nm
-  #test -L /usr/local/bin/gcc-ranlib && rm -v /usr/local/bin/gcc-ranlib
-  #test -L /usr/local/bin/gcj && rm -v /usr/local/bin/gcj
-  #test -L /usr/local/bin/gfortran && rm -v /usr/local/bin/gfortran
+  test -L /usr/local/bin/gcc-ar && rm /usr/local/bin/gcc-ar
+  test -L /usr/local/bin/gcc-nm && rm /usr/local/bin/gcc-nm
+  test -L /usr/local/bin/gcc-ranlib && rm /usr/local/bin/gcc-ranlib
+  test -L /usr/local/bin/gcj && rm /usr/local/bin/gcj
+  test -L /usr/local/bin/gfortran && rm /usr/local/bin/gfortran
   test -d $PREFIX && rm -rf $PREFIX
+  test -d $TMPDIR && rm -rf $TMPDIR
   popd 1>/dev/null
 }
 
@@ -96,8 +101,13 @@ preparation ()
 
 post_install()
 {
+  ln -s $PREFIX/usr/bin/gcc-ar /usr/local/bin/gcc-ar
+  ln -s $PREFIX/usr/bin/gcc-nm /usr/local/bin/gcc-nm
+  ln -s $PREFIX/usr/bin/gcc-ranlib /usr/local/bin/gcc-ranlib
+  ln -s $PREFIX/usr/bin/gcj /usr/local/bin/gcj
+  ln -s $PREFIX/usr/bin/gfortran /usr/local/bin/gfortran
   export PATH=$OLDPATH
-  export CFLAGS=OLDCFLAGS
+  export CFLAGS=$OLDCFLAGS
   export CXXFLAGS=$CXXFLAGS
   export CPPFLAGS=$CPPFLAGS
   export LDFLAGS=$LDFLAGS
