@@ -104,7 +104,7 @@ post_install()
   local program
   declare -a program=(gcc-ar gcc-nm gcc-ranlib gcj gfortran)
   for p in ${program[@]}; do
-    test -x /usr/local/bin/$p && rm -f /usr/local/bin/$p
+    test -e /usr/local/bin/$p && rm -f /usr/local/bin/$p
     ln -s $PREFIX/usr/bin/$P /usr/local/bin/$p
   done
   export PATH=$OLDPATH
