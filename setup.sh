@@ -101,11 +101,11 @@ preparation ()
 
 post_install()
 {
-  ln -s $PREFIX/usr/bin/gcc-ar /usr/local/bin/gcc-ar
-  ln -s $PREFIX/usr/bin/gcc-nm /usr/local/bin/gcc-nm
-  ln -s $PREFIX/usr/bin/gcc-ranlib /usr/local/bin/gcc-ranlib
-  ln -s $PREFIX/usr/bin/gcj /usr/local/bin/gcj
-  ln -s $PREFIX/usr/bin/gfortran /usr/local/bin/gfortran
+  local declare -a program=(gcc-ar gcc-nm gcc-ranlib gcj gfortran)
+  for p in ${program[@]}; do
+    test -x /usr/local/bin/$p && rm -f /usr/local/bin/$p
+    ln -s $PREFIX/usr/bin/$P /usr/local/bin/$p
+  done
   export PATH=$OLDPATH
   export CFLAGS=$OLDCFLAGS
   export CXXFLAGS=$CXXFLAGS
