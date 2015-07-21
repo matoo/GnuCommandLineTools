@@ -89,12 +89,8 @@ preparation ()
   export LDFLAGS=$LDFLAGS
   echo "Setup $PREFIX Environmnet"
   if [ ! -d $COMMANDLINETOOLS ]; then
-    echo 'Installing CommandLineTools'
-    xcode-select --install
-    if [ $? -ne 0 ];then
-      echo 'Failed to install CommandLineTools'
-      return 1
-    fi
+    echo 'Not found CommandLineTools'
+    return 1
   fi
   
   rsync -lru --delete $COMMANDLINETOOLS/* $PREFIX
