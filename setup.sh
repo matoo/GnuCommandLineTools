@@ -90,7 +90,7 @@ preparation ()
   echo "Setup $PREFIX Environmnet"
   if [ ! -d $COMMANDLINETOOLS ]; then
     echo 'Installing CommandLineTools'
-    xcode-select install
+    xcode-select --install
     if [ $? -ne 0 ];then
       echo 'Failed to install CommandLineTools'
       return 1
