@@ -88,10 +88,15 @@ preparation ()
   export CPPFLAGS=$CPPFLAGS
   export LDFLAGS=$LDFLAGS
   echo "Setup $PREFIX Environmnet"
-  if [ ! -d $COMMANDLINETOOLSPATH ]; then
+  if [ ! -d $COMMANDLINETOOLS ]; then
     echo 'Installing CommandLineTools'
     xcode-select install
+    if [ $? -ne 0 ];then
+      echo 'Failed to install CommandLineTools'
+      return 1
+    fi
   fi
+  
   rsync -lru --delete $COMMANDLINETOOLS/* $PREFIX
   pushd $PREFIX/usr/bin 1>/dev/null
   mv gcc gcc_llvm
