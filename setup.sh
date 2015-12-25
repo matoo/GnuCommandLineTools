@@ -29,8 +29,8 @@ LDFLAGS="-L$TOOLCHAIN/lib"
 usage()
 {
   echo "Usage:"
-  echo "Install:   # sh INSTALLER.sh"
-  echo "Uninstall: # sh INSTALLER.sh -u"
+  echo "Install:   # sh setup.sh"
+  echo "Uninstall: # sh setup.sh -u"
   echo "You must execute as root user"
   exit 0
 }
